@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t chkbarlow/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true chkbarlow/react-test npm test
+
+after_success:
+  - docker build -t chkbarlow/multi-client ./client
+  - docker build -t chkbarlow/multi-nginx ./nginx
+  - docker build -t chkbarlow/multi-server ./server
+  - docker build -t chkbarlow/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push chkbarlow/multi-client
+  - docker push chkbarlow/multi-nginx
+  - docker push chkbarlow/multi-server
+  - docker push chkbarlow/multi-worker
